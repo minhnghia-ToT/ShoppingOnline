@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.db
+*.cache
+*.log
+*.sqlite
+node_modules/
+.env
