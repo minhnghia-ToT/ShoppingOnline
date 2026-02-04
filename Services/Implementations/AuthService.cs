@@ -8,7 +8,7 @@ using ShoppingOnline.Services.Interfaces;
 
 namespace ShoppingOnline.Services.Implementations
 {
-    public class AuthService : IAuthService
+    public class AuthService :  IAuthService
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _config;
@@ -109,7 +109,7 @@ namespace ShoppingOnline.Services.Implementations
             await _emailService.SendOtpAsync(user.Email, code);
         }
 
-        public async Task<string> VerifyOtpAsync(VerifyOtpRequestDto request)
+        public async Task VerifyOtpAsync(VerifyOtpRequestDto request)
         {
             var otp = await _context.PasswordResetOtps
                 .Include(o => o.User)
@@ -120,15 +120,13 @@ namespace ShoppingOnline.Services.Implementations
                 .FirstOrDefaultAsync();
 
             if (otp == null)
-                return "OTP not found.";
+                throw new Exception("OTP not found.");
 
             if (otp.ExpiredAt < DateTime.UtcNow)
-                return "OTP has expired.";
+                throw new Exception("OTP has expired.");
 
             if (otp.Code != request.OtpCode)
-                return "Invalid OTP. Please try again.";
-
-            return "OTP is valid.";
+                throw new Exception("Invalid OTP. Please try again.");
         }
 
         public async Task<string> ResetPasswordAsync(ResetPasswordRequestDto request)
@@ -156,6 +154,32 @@ namespace ShoppingOnline.Services.Implementations
             await _context.SaveChangesAsync();
 
             return "Password has been reset successfully.";
+        }
+
+        // Add this method to implement the missing interface member
+        public async Task ResetPasswordAsync(string email, string code, string newPassword)
+        {
+            var otp = await _context.PasswordResetOtps
+                .Include(o => o.User)
+                .Where(o =>
+                    o.User.Email == email &&
+                    !o.IsUsed)
+                .OrderByDescending(o => o.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (otp == null)
+                throw new Exception("OTP not found.");
+
+            if (otp.ExpiredAt < DateTime.UtcNow)
+                throw new Exception("OTP has expired.");
+
+            if (otp.Code != code)
+                throw new Exception("Invalid OTP.");
+
+            otp.IsUsed = true;
+            otp.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            await _context.SaveChangesAsync();
         }
     }
 }
