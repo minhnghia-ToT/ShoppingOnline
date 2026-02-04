@@ -44,18 +44,22 @@ namespace ShoppingOnline.Controllers
             return Ok("OTP sent to email");
         }
 
-        /* [HttpPost("verify-otp")]
-         public async Task<IActionResult> VerifyOtp(VerifyOtpRequestDto request)
-         {
-             var result = await _authService.VerifyOtpAsync(request);
-             return Ok(result);
-         }*/
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp(VerifyOtpRequestDto request)
+        {
+            await _authService.VerifyOtpAsync(request);
+            return Ok("OTP verified");
+        }
 
-        /* [HttpPost("reset-password")]
-         public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto request)
-         {
-             var result = await _authService.ResetPasswordAsync(request);
-             return Ok(result);
-         }*/
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto request)
+        {
+            await _authService.ResetPasswordAsync(
+                request.Email,
+                request.OtpCode,
+                request.NewPassword
+            );
+            return Ok("Password reset successful");
+        }
     }
 }
