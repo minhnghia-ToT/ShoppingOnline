@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ShoppingOnline.Data;
-using ShoppingOnline.Services.Interfaces;
+using ShoppingOnline.Services.Categories;
 using ShoppingOnline.Services.Implementations;
+using ShoppingOnline.Services.Interfaces;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,52 +25,77 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // =======================
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IAdminProductService, AdminProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // =======================
-// JWT AUTHENTICATION
+// JWT AUTHENTICATION (CHUẨN)
 // =======================
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"];
 
-if (string.IsNullOrEmpty(jwtKey))
+if (string.IsNullOrWhiteSpace(jwtKey))
 {
     throw new Exception("JWT Key is missing in appsettings.json");
 }
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
 
-        ValidIssuer = jwtSection["Issuer"],
-        ValidAudience = jwtSection["Audience"],
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
 
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtKey)
-        ),
+            ValidIssuer = jwtSection["Issuer"],
+            ValidAudience = jwtSection["Audience"],
 
-        ClockSkew = TimeSpan.Zero
-    };
-});
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey)
+            ),
+
+            // QUAN TRỌNG: map đúng role
+            RoleClaimType = ClaimTypes.Role,
+
+            ClockSkew = TimeSpan.Zero
+        };
+
+        // DEBUG – rất nên giữ khi test
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine("JWT AUTH FAILED: " + context.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("JWT TOKEN VALIDATED");
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 // =======================
-// CONTROLLERS & SWAGGER
+// AUTHORIZATION
+// =======================
+builder.Services.AddAuthorization();
+
+// =======================
+// CONTROLLERS
 // =======================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+// =======================
+// SWAGGER + JWT
+// =======================
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -84,7 +111,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter: Bearer {your JWT token}"
+        Description = "Nhập: Bearer {JWT token}"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -106,7 +133,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // =======================
-// MIDDLEWARE
+// MIDDLEWARE PIPELINE
 // =======================
 if (app.Environment.IsDevelopment())
 {
@@ -116,7 +143,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); // JWT
+// THỨ TỰ BẮT BUỘC
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
