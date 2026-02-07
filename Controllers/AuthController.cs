@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ShoppingOnline.DTOs;
 using ShoppingOnline.Services.Interfaces;
 
@@ -60,6 +61,12 @@ namespace ShoppingOnline.Controllers
                 request.NewPassword
             );
             return Ok("Password reset successful");
+        }
+        [HttpPost("register-admin")]
+        public async Task<IActionResult> RegisterAdmin(RegisterAdminRequestDto request)
+        {
+            var result = await _authService.RegisterAdminAsync(request);
+            return Ok(result);
         }
     }
 }

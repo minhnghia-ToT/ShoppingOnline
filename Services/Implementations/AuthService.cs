@@ -181,5 +181,41 @@ namespace ShoppingOnline.Services.Implementations
 
             await _context.SaveChangesAsync();
         }
+        public async Task<string> RegisterAdminAsync(RegisterAdminRequestDto request)
+        {
+            var exists = await _context.Users
+                .AnyAsync(u => u.Email == request.Email);
+
+            if (exists)
+                return "Email already exists.";
+
+            var adminRole = await _context.Roles
+                .FirstOrDefaultAsync(r => r.Name == "Admin");
+
+            if (adminRole == null)
+                return "Admin role not found.";
+
+            var user = new User
+            {
+                Email = request.Email,
+                FullName = request.FullName,
+                Phone = request.Phone,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                IsActive = true
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            _context.UserRoles.Add(new UserRole
+            {
+                UserId = user.Id,
+                RoleId = adminRole.Id
+            });
+
+            await _context.SaveChangesAsync();
+
+            return "Admin registered successfully.";
+        }
     }
 }
