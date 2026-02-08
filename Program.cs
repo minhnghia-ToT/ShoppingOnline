@@ -27,6 +27,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAdminProductService, AdminProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductImageService, ProductImageService>();
 
 // =======================
 // JWT AUTHENTICATION
@@ -150,6 +151,8 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "swagger";
     });
 }
+//img
+app.UseStaticFiles();
 
 //Giữ HTTPS
 app.UseHttpsRedirection();

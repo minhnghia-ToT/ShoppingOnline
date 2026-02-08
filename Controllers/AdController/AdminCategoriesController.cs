@@ -7,7 +7,7 @@ namespace ShoppingOnline.Controllers.Admin
 {
     [ApiController]
     [Route("api/admin/categories")]
-    /*[Authorize(Roles = "Admin")]*/
+    [Authorize(Roles = "Admin")]
     public class AdminCategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
