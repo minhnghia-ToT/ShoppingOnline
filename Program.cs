@@ -29,7 +29,7 @@ builder.Services.AddScoped<IAdminProductService, AdminProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // =======================
-// JWT AUTHENTICATION (CHUẨN)
+// JWT AUTHENTICATION
 // =======================
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"];
@@ -57,16 +57,14 @@ builder.Services
             ValidAudience = jwtSection["Audience"],
 
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtKey)
+                Encoding.UTF8.GetBytes(jwtKey!)
             ),
 
-            // QUAN TRỌNG: map đúng role
             RoleClaimType = ClaimTypes.Role,
-
             ClockSkew = TimeSpan.Zero
         };
 
-        // DEBUG – rất nên giữ khi test
+        // DEBUG
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -104,6 +102,13 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
+    // FIX 1: KHAI BÁO SERVER HTTPS CỤ THỂ
+    c.AddServer(new OpenApiServer
+    {
+        Url = "https://localhost:7011"
+    });
+
+    //FIX 2: BEARER SCHEME CHUẨN
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -114,6 +119,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Nhập: Bearer {JWT token}"
     });
 
+    //FIX 3: ÉP SWAGGER GẮN TOKEN VÀO REQUEST
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -138,12 +144,17 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ShoppingOnline API v1");
+        c.RoutePrefix = "swagger";
+    });
 }
 
+//Giữ HTTPS
 app.UseHttpsRedirection();
 
-// THỨ TỰ BẮT BUỘC
+// BẮT BUỘC ĐÚNG THỨ TỰ
 app.UseAuthentication();
 app.UseAuthorization();
 
