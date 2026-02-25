@@ -28,6 +28,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAdminProductService, AdminProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // =======================
 // JWT AUTHENTICATION
@@ -80,7 +81,21 @@ builder.Services
             }
         };
     });
-
+// =======================
+// CORS
+// =======================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:3000") // NextJS
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
 // =======================
 // AUTHORIZATION
 // =======================
@@ -156,7 +171,8 @@ app.UseStaticFiles();
 
 //Giữ HTTPS
 app.UseHttpsRedirection();
-
+//Cors
+app.UseCors("AllowFrontend");
 // BẮT BUỘC ĐÚNG THỨ TỰ
 app.UseAuthentication();
 app.UseAuthorization();
