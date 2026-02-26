@@ -62,4 +62,11 @@ public class AdminProductsController : ControllerBase
         await _service.DeleteImageAsync(imageId);
         return NoContent();
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _service.DeleteAsync(id);
+        return NoContent();
+    }
 }
