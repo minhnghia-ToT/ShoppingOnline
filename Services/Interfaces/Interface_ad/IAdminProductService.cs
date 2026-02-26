@@ -14,5 +14,6 @@ namespace ShoppingOnline.Services.Interfaces
         Task UpdateStatusAsync(int id, string status);
 
         Task DeleteImageAsync(int imageId);
+        Task DeleteAsync(int id);
     }
 }

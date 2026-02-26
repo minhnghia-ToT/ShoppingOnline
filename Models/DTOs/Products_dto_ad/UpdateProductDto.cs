@@ -12,5 +12,12 @@
         public string Status { get; set; }
 
         public int CategoryId { get; set; }
+
+        public List<UpdateProductImageDto>? NewImages { get; set; }
+    }
+    public class UpdateProductImageDto
+    {
+        public string ImageUrl { get; set; }
+        public bool IsMain { get; set; }
     }
 }

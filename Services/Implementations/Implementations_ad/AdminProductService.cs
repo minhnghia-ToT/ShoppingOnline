@@ -109,16 +109,35 @@ namespace ShoppingOnline.Services.Implementations
 
         public async Task UpdateAsync(int id, UpdateProductDto dto)
         {
-            var p = await _context.Products.FindAsync(id);
-            if (p == null) throw new Exception("Product not found");
+            var product = await _context.Products
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-            p.Name = dto.Name;
-            p.Description = dto.Description;
-            p.Price = dto.Price;
-            p.DiscountPrice = dto.DiscountPrice;
-            p.StockQuantity = dto.StockQuantity;
-            p.Status = dto.Status;
-            p.CategoryId = dto.CategoryId;
+            if (product == null)
+                throw new Exception("Product not found");
+
+            // ===== Update thông tin cơ bản =====
+            product.Name = dto.Name;
+            product.Description = dto.Description;
+            product.Price = dto.Price;
+            product.DiscountPrice = dto.DiscountPrice;
+            product.StockQuantity = dto.StockQuantity;
+            product.Status = dto.Status;
+            product.CategoryId = dto.CategoryId;
+
+            // ===== Thêm hình ảnh mới nếu có =====
+            if (dto.NewImages != null && dto.NewImages.Any())
+            {
+                foreach (var img in dto.NewImages)
+                {
+                    product.Images.Add(new ProductImage
+                    {
+                        ImageUrl = img.ImageUrl,
+                        IsMain = img.IsMain,
+                        ProductId = product.Id
+                    });
+                }
+            }
 
             await _context.SaveChangesAsync();
         }
@@ -147,6 +166,24 @@ namespace ShoppingOnline.Services.Implementations
             if (img == null) throw new Exception("Image not found");
 
             _context.ProductImages.Remove(img);
+            await _context.SaveChangesAsync();
+        }
+        public async Task DeleteAsync(int id)
+        {
+            var product = await _context.Products
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (product == null)
+                throw new Exception("Product not found");
+
+            // Nếu muốn xóa luôn images liên quan
+            if (product.Images != null && product.Images.Any())
+            {
+                _context.ProductImages.RemoveRange(product.Images);
+            }
+
+            _context.Products.Remove(product);
             await _context.SaveChangesAsync();
         }
     }
