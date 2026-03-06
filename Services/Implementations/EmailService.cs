@@ -42,5 +42,34 @@ namespace ShoppingOnline.Services.Implementations
 
             await smtp.SendMailAsync(mail);
         }
+        public async Task SendEmailAsync(string email, string subject, string message)
+        {
+            var senderEmail = _config["EmailSettings:SenderEmail"];
+            var password = _config["EmailSettings:Password"];
+            var smtpServer = _config["EmailSettings:SmtpServer"];
+            var port = int.Parse(_config["EmailSettings:Port"] ?? "587");
+
+            if (string.IsNullOrEmpty(senderEmail))
+                throw new Exception("SenderEmail missing in appsettings.json");
+
+            var mail = new MailMessage
+            {
+                From = new MailAddress(senderEmail),
+                Subject = subject,
+                Body = message,
+                IsBodyHtml = true
+            };
+
+            mail.To.Add(email);
+
+            using var smtp = new SmtpClient(smtpServer, port)
+            {
+                Credentials = new NetworkCredential(senderEmail, password),
+                EnableSsl = true
+            };
+
+            await smtp.SendMailAsync(mail);
+        }
+
     }
 }

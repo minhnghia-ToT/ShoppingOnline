@@ -36,7 +36,8 @@ namespace ShoppingOnline.Data
 
         // UI
         public DbSet<Banner> Banners { get; set; }
-
+        //Notification
+        public DbSet<Notification> Notifications { get; set; }  
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
