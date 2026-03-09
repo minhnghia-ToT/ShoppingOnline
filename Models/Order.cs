@@ -8,7 +8,7 @@
 
         public int UserId { get; set; }
         public User User { get; set; }
-
+        public Payment Payment { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<OrderItem> OrderItems { get; set; }
