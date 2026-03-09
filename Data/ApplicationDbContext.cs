@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OnlineShopping.Models;
 using ShoppingOnline.Models;
 using System.Collections.Generic;
 using System.Data;
@@ -37,7 +38,9 @@ namespace ShoppingOnline.Data
         // UI
         public DbSet<Banner> Banners { get; set; }
         //Notification
-        public DbSet<Notification> Notifications { get; set; }  
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

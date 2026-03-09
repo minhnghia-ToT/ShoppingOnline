@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OnlineShopping.Services.Interfaces;
 using ShoppingOnline.Data;
 using ShoppingOnline.Services.Categories;
 using ShoppingOnline.Services.Implementations;
@@ -30,6 +31,8 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IBannerService, BannerService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 // =======================
 // JWT AUTHENTICATION
