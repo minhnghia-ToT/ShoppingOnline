@@ -31,7 +31,8 @@ namespace ShoppingOnline.Services.Implementations
             {
                 var product = item.Product;
 
-                if (product.Status != "InStock")
+                
+                if (product.Status != "Active")
                     throw new Exception($"Product {product.Name} is not available");
 
                 if (product.StockQuantity < item.Quantity)
