@@ -6,7 +6,9 @@ using OnlineShopping.Services.Interfaces;
 using ShoppingOnline.Data;
 using ShoppingOnline.Services.Categories;
 using ShoppingOnline.Services.Implementations;
+using ShoppingOnline.Services.Implementations.Implementations_ad;
 using ShoppingOnline.Services.Interfaces;
+using ShoppingOnline.Services.Interfaces.Interface_ad;
 using System.Security.Claims;
 using System.Text;
 
@@ -34,6 +36,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
 
 // =======================
 // JWT AUTHENTICATION
