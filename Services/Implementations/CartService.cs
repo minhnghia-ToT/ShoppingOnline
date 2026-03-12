@@ -15,6 +15,9 @@ namespace ShoppingOnline.Services.Implementations
             _context = context;
         }
 
+        // ===============================
+        // ADD TO CART
+        // ===============================
         public async Task AddToCart(int userId, AddToCartDTO dto)
         {
             var product = await _context.Products
@@ -34,7 +37,8 @@ namespace ShoppingOnline.Services.Implementations
             {
                 cart = new Cart
                 {
-                    UserId = userId
+                    UserId = userId,
+                    CartItems = new List<CartItem>()
                 };
 
                 _context.Carts.Add(cart);
@@ -63,6 +67,9 @@ namespace ShoppingOnline.Services.Implementations
             await _context.SaveChangesAsync();
         }
 
+        // ===============================
+        // UPDATE CART
+        // ===============================
         public async Task UpdateCart(int userId, UpdateCartDTO dto)
         {
             var cart = await _context.Carts
@@ -81,7 +88,10 @@ namespace ShoppingOnline.Services.Implementations
             var product = await _context.Products
                 .FirstOrDefaultAsync(x => x.Id == dto.ProductId);
 
-            if (dto.Quantity == 0)
+            if (product == null)
+                throw new Exception("Product not found");
+
+            if (dto.Quantity <= 0)
             {
                 _context.CartItems.Remove(item);
             }
@@ -91,11 +101,17 @@ namespace ShoppingOnline.Services.Implementations
                     throw new Exception($"Only {product.StockQuantity} items available in stock");
 
                 item.Quantity = dto.Quantity;
+
+                // update price nếu product thay đổi
+                item.Price = product.DiscountPrice ?? product.Price;
             }
 
             await _context.SaveChangesAsync();
         }
 
+        // ===============================
+        // REMOVE ITEM
+        // ===============================
         public async Task RemoveItem(int userId, int productId)
         {
             var cart = await _context.Carts
@@ -116,6 +132,9 @@ namespace ShoppingOnline.Services.Implementations
             await _context.SaveChangesAsync();
         }
 
+        // ===============================
+        // GET CART
+        // ===============================
         public async Task<List<CartItemResponseDTO>> GetCart(int userId)
         {
             var cart = await _context.Carts
@@ -131,8 +150,12 @@ namespace ShoppingOnline.Services.Implementations
             {
                 ProductId = x.ProductId,
                 ProductName = x.Product.Name,
-                Price = x.Price,
+
+                // LẤY GIÁ TỪ PRODUCT
+                Price = x.Product.DiscountPrice ?? x.Product.Price,
+
                 Quantity = x.Quantity,
+
                 Image = x.Product.Images
                     .FirstOrDefault(i => i.IsMain)?.ImageUrl
             }).ToList();

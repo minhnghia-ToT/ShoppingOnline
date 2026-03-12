@@ -1,21 +1,21 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using ShoppingOnline.DTOs.Cart;
 using ShoppingOnline.Services.Interfaces;
-using System.Security.Claims;
 
 namespace ShoppingOnline.Controllers
 {
-    [Authorize]
     [ApiController]
-    [Route("cart")]
+    [Route("api/cart")]
+    [Authorize]
     public class CartController : ControllerBase
     {
-        private readonly ICartService _service;
+        private readonly ICartService _cartService;
 
-        public CartController(ICartService service)
+        public CartController(ICartService cartService)
         {
-            _service = service;
+            _cartService = cartService;
         }
 
         private int GetUserId()
@@ -23,36 +23,48 @@ namespace ShoppingOnline.Controllers
             return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         }
 
-        [HttpPost("add")]
-        public async Task<IActionResult> AddToCart(AddToCartDTO dto)
-        {
-            await _service.AddToCart(GetUserId(), dto);
-
-            return Ok(new { message = "Product added to cart" });
-        }
-
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateCart(UpdateCartDTO dto)
-        {
-            await _service.UpdateCart(GetUserId(), dto);
-
-            return Ok(new { message = "Cart updated successfully" });
-        }
-
-        [HttpDelete("remove/{productId}")]
-        public async Task<IActionResult> Remove(int productId)
-        {
-            await _service.RemoveItem(GetUserId(), productId);
-
-            return Ok(new { message = "Item removed from cart" });
-        }
-
+        // GET api/cart
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
-            var cart = await _service.GetCart(GetUserId());
+            var userId = GetUserId();
+
+            var cart = await _cartService.GetCart(userId);
 
             return Ok(cart);
+        }
+
+        // POST api/cart/add
+        [HttpPost("add")]
+        public async Task<IActionResult> AddToCart(AddToCartDTO dto)
+        {
+            var userId = GetUserId();
+
+            await _cartService.AddToCart(userId, dto);
+
+            return Ok(new { message = "Added to cart successfully" });
+        }
+
+        // PUT api/cart/update
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateCart(UpdateCartDTO dto)
+        {
+            var userId = GetUserId();
+
+            await _cartService.UpdateCart(userId, dto);
+
+            return Ok(new { message = "Cart updated" });
+        }
+
+        // DELETE api/cart/{productId}
+        [HttpDelete("{productId}")]
+        public async Task<IActionResult> RemoveItem(int productId)
+        {
+            var userId = GetUserId();
+
+            await _cartService.RemoveItem(userId, productId);
+
+            return Ok(new { message = "Item removed" });
         }
     }
 }
