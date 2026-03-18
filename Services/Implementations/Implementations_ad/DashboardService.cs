@@ -28,7 +28,7 @@ public class DashboardService : IDashboardService
         // B1: Lấy data từ DB trước
         var orders = await _context.Orders
             .Include(o => o.OrderItems)
-            .Where(o => o.Status == "Completed"
+            .Where(o => o.Status == "Delivered"
                      && o.CreatedAt >= startOfWeek
                      && o.CreatedAt < endOfWeek)
             .ToListAsync();
@@ -86,19 +86,19 @@ public class DashboardService : IDashboardService
 
         // 2️⃣ Products Sold This Month
         var productsSoldThisMonth = await _context.OrderItems
-            .Where(oi => oi.Order.Status == "Completed"
+            .Where(oi => oi.Order.Status == "Delivered"
                       && oi.Order.CreatedAt >= startOfMonth)
             .SumAsync(oi => (int?)oi.Quantity) ?? 0;
 
         // 3️⃣ Revenue Last 30 Days
         var revenueLast30Days = await _context.Orders
-            .Where(o => o.Status == "Completed"
+            .Where(o => o.Status == "Delivered"
                      && o.CreatedAt >= last30Days)
             .SumAsync(o => (decimal?)o.TotalAmount) ?? 0;
 
         // 4️⃣ Active Customers (có hơn 1 đơn completed)
         var activeCustomers = await _context.Orders
-            .Where(o => o.Status == "Completed")
+            .Where(o => o.Status == "Delivered")
             .GroupBy(o => o.UserId)
             .Where(g => g.Count() > 1)
             .CountAsync();
