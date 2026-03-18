@@ -62,6 +62,7 @@ namespace ShoppingOnline.Services.Implementations
                     throw new Exception($"Only {product.StockQuantity} items available in stock");
 
                 item.Quantity += dto.Quantity;
+                item.Price = product.DiscountPrice ?? product.Price;
             }
 
             await _context.SaveChangesAsync();
@@ -150,14 +151,13 @@ namespace ShoppingOnline.Services.Implementations
             {
                 ProductId = x.ProductId,
                 ProductName = x.Product.Name,
-
-                // LẤY GIÁ TỪ PRODUCT
-                Price = x.Product.DiscountPrice ?? x.Product.Price,
-
-                Quantity = x.Quantity,
-
                 Image = x.Product.Images
-                    .FirstOrDefault(i => i.IsMain)?.ImageUrl
+                .FirstOrDefault(i => i.IsMain)?.ImageUrl,
+
+                Price = x.Price,
+                Quantity = x.Quantity
+
+                // ❌ KHÔNG gán Total nữa
             }).ToList();
         }
     }
