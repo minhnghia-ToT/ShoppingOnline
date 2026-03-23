@@ -5,7 +5,7 @@ namespace ShoppingOnline.Services.Interfaces
     public interface IAuthService
     {
         Task<LoginResponseDto?> LoginAsync(LoginRequestDto request);
-       
+        Task<LoginResponseDto> GoogleLoginAsync(string googleToken);
         Task<string> RegisterAsync(RegisterRequestDto request);
         Task<string> RegisterAdminAsync(RegisterAdminRequestDto request);
 
@@ -13,6 +13,7 @@ namespace ShoppingOnline.Services.Interfaces
         Task SendForgotPasswordOtpAsync(ForgotPasswordRequestDto request);
         Task VerifyOtpAsync(VerifyOtpRequestDto request);
         Task ResetPasswordAsync(string email, string code, string newPassword);
+
         
     }
 }

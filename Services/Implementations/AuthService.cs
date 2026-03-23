@@ -4,7 +4,7 @@ using ShoppingOnline.DTOs;
 using ShoppingOnline.Helpers;
 using ShoppingOnline.Models;
 using ShoppingOnline.Services.Interfaces;
-
+using Google.Apis.Auth;
 
 namespace ShoppingOnline.Services.Implementations
 {
@@ -20,7 +20,70 @@ namespace ShoppingOnline.Services.Implementations
             _emailService = emailService;
 
         }
+        public async Task<LoginResponseDto> GoogleLoginAsync(string googleToken)
+        {
+            // 1. VERIFY TOKEN GOOGLE
+            var payload = await GoogleJsonWebSignature.ValidateAsync(googleToken);
 
+            var email = payload.Email;
+            var name = payload.Name;
+
+            // 2. CHECK USER
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                // 3. TẠO USER MỚI
+                user = new User
+                {
+                    Email = email,
+                    FullName = name,
+                    PasswordHash = "", // không dùng password
+                    IsActive = true
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                // GÁN ROLE USER
+                var userRole = await _context.Roles
+                    .FirstOrDefaultAsync(r => r.Name == "User");
+
+                if (userRole != null)
+                {
+                    _context.UserRoles.Add(new UserRole
+                    {
+                        UserId = user.Id,
+                        RoleId = userRole.Id
+                    });
+
+                    await _context.SaveChangesAsync();
+                }
+
+                // load lại roles
+                user = await _context.Users
+                    .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                    .FirstAsync(u => u.Id == user.Id);
+            }
+
+            // 4. LẤY ROLE
+            var roles = user.UserRoles
+                .Select(ur => ur.Role.Name)
+                .ToList();
+
+            // 5. GENERATE JWT (DÙNG CODE SẴN CỦA BẠN)
+            var token = JwtHelper.GenerateToken(user, roles, _config);
+
+            return new LoginResponseDto
+            {
+                Token = token,
+                ExpiredAt = DateTime.UtcNow.AddHours(2)
+            };
+        }
         // ===================== LOGIN =====================
         public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto request)
         {
