@@ -157,7 +157,7 @@ namespace ShoppingOnline.Services.Implementations
                 Price = x.Price,
                 Quantity = x.Quantity
 
-                // ❌ KHÔNG gán Total nữa
+                //  KHÔNG gán Total nữa
             }).ToList();
         }
     }

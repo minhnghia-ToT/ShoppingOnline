@@ -134,7 +134,9 @@ namespace ShoppingOnline.Services.Implementations
                 OrderId = order.Id,
                 Method = paymentMethod,
                 Status = "Pending",
-                Amount = total
+                Amount = total,
+                PaymentGateway = paymentMethod,
+                TransactionId = Guid.NewGuid().ToString() 
             };
 
             _context.Payments.Add(payment);
